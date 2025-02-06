@@ -4,7 +4,7 @@ import torch.nn as nn
 
 
 class UNet(nn.Module):
-    def __init__(self, input_channel_count, output_channel_count, first_layer_filter_count):
+    def __init__(self, first_layer_filter_count):
         super(UNet, self).__init__()
 
         # パラメータ定義
@@ -16,7 +16,7 @@ class UNet(nn.Module):
         self.DECONV_STRIDE = 2
 
         # エンコーダーの作成
-        self.enc1 = self._add_encoding_layer(input_channel_count, first_layer_filter_count)
+        self.enc1 = self._add_encoding_layer(1, first_layer_filter_count)
         self.enc2 = self._add_encoding_layer(first_layer_filter_count, first_layer_filter_count * 2)
         self.enc3 = self._add_encoding_layer(first_layer_filter_count * 2, first_layer_filter_count * 4)
         self.enc4 = self._add_encoding_layer(first_layer_filter_count * 4, first_layer_filter_count * 8)
@@ -31,7 +31,7 @@ class UNet(nn.Module):
         self.dec4 = self._add_decoding_layer(first_layer_filter_count * 8 * 2, first_layer_filter_count * 4, False)
         self.dec5 = self._add_decoding_layer(first_layer_filter_count * 4 * 2, first_layer_filter_count * 2, False)
         self.dec6 = self._add_decoding_layer(first_layer_filter_count * 2 * 2, first_layer_filter_count, False)
-        self.dec7 = self._add_decoding_layer(first_layer_filter_count * 2, output_channel_count, False)
+        self.dec7 = self._add_decoding_layer(first_layer_filter_count * 2, 1, False)
 
     def forward(self, x):
         enc1 = self.enc1(x)
@@ -50,7 +50,7 @@ class UNet(nn.Module):
         dec6 = self.dec6(torch.cat((dec5, enc2), dim=self.CONCATENATE_AXIS))
         dec7 = self.dec7(torch.cat((dec6, enc1), dim=self.CONCATENATE_AXIS))
 
-        return torch.sigmoid(dec7)
+        return dec7
 
     def _add_encoding_layer(self, in_channels, out_channels):
         return nn.Sequential(

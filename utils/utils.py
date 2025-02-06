@@ -2,20 +2,17 @@ import torch
 from matplotlib import pyplot as plt
 import numpy as np
 import networkx as nx
+import os
+import random
+import torch.nn.functional as F
+import torch.nn as nn
 
 
-def calc_adj_matrix(route):
-    n = len(route)
-    adj_matrix = np.zeros((n, n), dtype=int)
-    for i in range(n-1):
-        idx_1 = route[i]
-        idx_2 = route[i+1]
+def set_seed(seed: int = 0) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
-        adj_matrix[idx_1, idx_2] = 1
-        adj_matrix[idx_2, idx_1] = 1
-    adj_matrix[idx_2, route[0]] = 1
-    adj_matrix[route[0], idx_2] = 1
-    return adj_matrix
 
 def IoU_coef(y_true, y_pred):
 
@@ -37,7 +34,7 @@ def normalize(img):
 def inverse(img):
     return 255 - img
 
-def plot_node_IoU(result_list):
+def plot_node_IoU(result_list, log_dir):
     sorted_by_node = sorted(result_list, key=lambda x: x[1])
     node_list = [t[1] for t in sorted_by_node]
     IoU_list = [t[0] for t in sorted_by_node]
@@ -52,32 +49,30 @@ def plot_node_IoU(result_list):
     plt.ylabel("IoU")
     plt.title("node-IoU graph")
 
-    plt.savefig(f"learnig_prosess/160-200_node_IoU")
+    plt.savefig(os.path.join(log_dir, "node-IoU.png"))
     plt.close()
 
 
-def plot_tsp(p, x_coord, W_val, W_target, title="default"):
-    """
-    Returns:
-        p: Updated figure/subplot
+def plot_history(history, logdir):
+    epochs = range(1, len(history['train_loss']) + 1)
     
-    """
+    plt.figure()
+    plt.plot(epochs, history['train_loss'], label='Train Loss')
+    plt.plot(epochs, history['val_loss'], label='Val Loss')
+    plt.title('Loss')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.legend()
+    plt.savefig(os.path.join(logdir, 'loss.png'))
+    plt.close()
+    
+    plt.figure()
+    plt.plot(epochs, history['train_IoU'], label='Train IoU')
+    plt.plot(epochs, history['val_IoU'], label='Val IoU')
+    plt.title('IoU')
+    plt.xlabel('epoch')
+    plt.ylabel('IoU')
+    plt.legend()
+    plt.savefig(os.path.join(logdir, 'IoU.png'))
+    plt.close()
 
-    def _edges_to_node_pairs(W):
-        """Helper function to convert edge matrix into pairs of adjacent nodes.
-        """
-        pairs = []
-        for r in range(len(W)):
-            for c in range(len(W)):
-                if W[r][c] == 1:
-                    pairs.append((r, c))
-        return pairs
-    
-    G = nx.DiGraph(W_val)
-    pos = dict(zip(range(len(x_coord)), x_coord.tolist()))
-    target_pairs = _edges_to_node_pairs(W_target)
-    colors = ['g'] + ['b'] * (len(x_coord) - 1)  # Green for 0th node, blue for others
-    nx.draw_networkx_nodes(G, pos, node_color=colors, node_size=50)
-    nx.draw_networkx_edges(G, pos, edgelist=target_pairs, alpha=1, width=1, edge_color='r')
-    p.set_title(title)
-    return p
