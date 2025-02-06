@@ -3,10 +3,8 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import argparse
-import re
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
-import os
 
  
 def gray_show_route(X_list, Y_list, C_route):
@@ -60,31 +58,8 @@ def gray_show_vertices(X_list, Y_list):
 
     return vertices_img
 
-def calc_node_cords(X_list, Y_list):
-    li = []
-    li.append(X_list)
-    li.append(Y_list)
-    return np.array(li).T
 
-def calc_adj_matrix(route):
-    n = len(route)
-    adj_matrix = np.zeros((n, n), dtype=int)
-    for i in range(n-1):
-        idx_1 = route[i]
-        idx_2 = route[i+1]
 
-        adj_matrix[idx_1, idx_2] = 1
-        adj_matrix[idx_2, idx_1] = 1
-    adj_matrix[idx_2, route[0]] = 1
-    adj_matrix[route[0], idx_2] = 1
-    return adj_matrix
-
-def str2list_floats(input_string):
-    if type(input_string) == list:
-        return input_string
-    else:
-        matches = re.findall(r"[-e0-9.]+", input_string)  # 正規表現を使用して数字、"-", "e", "."を抽出
-        return [int(match) for match in matches] 
 
 def get_args():
     parser = argparse.ArgumentParser(description="for preprocess settings")
@@ -102,6 +77,13 @@ def get_args():
         type=int,
         default=87000,
         help="Number of data to be used"
+    )
+
+    parser.add_argument(
+        "--test_split_ratio",
+        type=float,
+        default=0.2,
+        help="split ratio for test data"
     )
 
     args = parser.parse_args()
@@ -148,7 +130,7 @@ def main(args):
     new_df["output_img"] = out_series_data
     new_df["num_node"] = num_node_seies
 
-    train_df, test_df = train_test_split(new_df, test_size=0.2, random_state=42)
+    train_df, test_df = train_test_split(new_df, test_size=args.test_split_ratio, random_state=42)
 
     
     train_df.reset_index(drop=True, inplace=True)
