@@ -45,6 +45,10 @@ def run(args: DictConfig):
     """
     first_layer_filter_counts = args.first_filter_counts
     model = UNet(first_layer_filter_counts).to(device)
+    nb_param = 0
+    for param in model.parameters():
+        nb_param += np.prod(list(param.data.size()))
+    print('Number of parameters:', nb_param)
     
 
     """
