@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 
 
-from utils.utils import IoU_coef, set_seed, plot_history
+from utils.utils import IoU_coef, set_seed, plot_history, plot_prediction
 from utils.data import TSPDataset
 from utils.model import UNet
 
@@ -20,7 +20,7 @@ from omegaconf import DictConfig
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="config") #configfileの指定
+@hydra.main(version_base=None, config_path="configs", config_name="config") 
 def run(args: DictConfig):
     set_seed(args.seed)
     logdir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
@@ -35,7 +35,7 @@ def run(args: DictConfig):
     train_set = TSPDataset("train")
     train_loader = torch.utils.data.DataLoader(train_set, shuffle=True, **loader_args)
     test_set = TSPDataset("test")
-    test_loader = torch.utils.data.DataLoader(test_set, shuffle=False, **loader_args)
+    test_loader = torch.utils.data.DataLoader(test_set, shuffle=True, **loader_args)
     
    
 
@@ -118,6 +118,7 @@ def run(args: DictConfig):
             torch.save(model.state_dict(), os.path.join(logdir, "unet_model_best.pt"))
             best_loss = np.mean(val_loss)
     plot_history(history, logdir)
+    plot_prediction(model, test_loader, device, logdir)
         
 
 if __name__ == "__main__":

@@ -16,8 +16,6 @@ def set_seed(seed: int = 0) -> None:
 
 def IoU_coef(y_true, y_pred):
 
-    #y_pred_sigmoid = torch.sigmoid(y_pred)
-
     T = y_true.view(-1)
     P = y_pred.view(-1)
 
@@ -75,4 +73,50 @@ def plot_history(history, logdir):
     plt.legend()
     plt.savefig(os.path.join(logdir, 'IoU.png'))
     plt.close()
+
+def plot_prediction(model, data_loader, device, log_dir, num_plot=3):
+    cnt = 0
+    fig, axes = plt.subplots(1, 3, figsize=(14, 6))
+    for data in data_loader:
+        if num_plot == cnt:
+            break
+        inputs, labels, num_nodes = data["input_img"].to(device), data["output_img"].to(device), data["num_node"]
+        outputs_logit = model(inputs)
+        outputs = torch.sigmoid(outputs_logit)
+
+        for i, (x, y, label, num_node) in enumerate(zip(inputs, outputs, labels, num_nodes)):
+            if num_plot == cnt:
+                break
+            x = x.cpu().detach().clone().numpy()
+            x = denormalize(x)
+            x = inverse(x)
+            x = x.reshape((256, 256, 1)) 
+
+            y = y.cpu().detach().clone().numpy()
+            y = denormalize(y)
+            y = inverse(y)
+            y = y.reshape((256, 256, 1))
+
+            label = label.cpu().detach().clone().numpy()
+            label = denormalize(label)
+            label = inverse(label)
+            label = label.reshape((256, 256, 1))
+
+            axes[0].imshow(x, cmap="gray")
+            axes[0].set_title("Input", fontsize=16)
+            axes[0].axis("off")
+
+            axes[1].imshow(label, cmap="gray")
+            axes[1].set_title("Grand truth", fontsize=16)
+            axes[1].axis("off")
+        
+            axes[2].imshow(y, cmap="gray")
+            axes[2].set_title("Output", fontsize=16)
+            axes[2].axis("off")
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(log_dir, f"node{num_node}_prediction_{i}.png"), dpi=300)
+
+            cnt += 1
+
 
