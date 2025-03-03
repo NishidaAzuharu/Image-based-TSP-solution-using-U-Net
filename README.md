@@ -1,5 +1,6 @@
 # Image-based-TSP-solution-using-U-Net
 This repository contains code for the paper "A solution of Traveling Salesman Problem Using Deep Learning" by Azuharu Fayyaz Nishida  
+Accepted to The 2024 International Conference on Computational Science and Computational Intelligence (CSCI 2024), CSCI3034, (2024-12)  
 Download datasets from [this link](https://www.kaggle.com/datasets/azuharunishida/huge-optimal-tour-tsp-datasets)
 
 ## run preprocessing
